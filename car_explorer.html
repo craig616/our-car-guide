@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0e10;--sur:#16161a;--card:#1e1e24;--bdr:#2a2a33;
+  --ink:#f0eee8;--mut:#6a6a7c;
+  --grn:#3dba7e;--gdim:rgba(61,186,126,0.12);--gbdr:rgba(61,186,126,0.3);
+  --amb:#e8a94a;--adim:rgba(232,169,74,0.12);--abdr:rgba(232,169,74,0.3);
+  --red:#e05a5a;--rdim:rgba(224,90,90,0.1);--rbdr:rgba(224,90,90,0.25);
+  --blu:#5b9cf6;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-weight:300;line-height:1.6;min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr)}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:300;background:rgba(14,14,16,0.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--bdr);height:52px;display:flex;flex-direction:row;align-items:stretch;padding:0 24px;gap:0}
+.nb{font-family:'Playfair Display',serif;font-size:14px;color:var(--ink);margin-right:20px;flex-shrink:0;white-space:nowrap;display:flex;align-items:center;}
+.ntabs{display:flex;align-items:stretch;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;flex:1}
+.ntabs::-webkit-scrollbar{display:none}
+.nt{height:52px;padding:0 14px;display:flex;align-items:center;font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mut);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;font-family:inherit;white-space:nowrap;transition:color 0.2s,border-color 0.2s}
+.nt:hover{color:var(--ink)}
+.nt.on{color:var(--grn);border-bottom-color:var(--grn)}
+.nt.sub{color:var(--mut);font-size:10px;opacity:0.7}
+.nt.sub.on{color:var(--grn);opacity:1}
+.page-sep{width:1px;height:24px;background:var(--bdr);margin:0 8px;flex-shrink:0}
+
+/* ── PAGES ── */
+.page{display:none}.page.on{display:block}
+
+/* ── WRAP ── */
+.w{max-width:1100px;margin:0 auto;padding:0 28px}
+.sec{padding:60px 0}
+.lbl{font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.lbl::before{content:'';width:18px;height:1px;background:var(--mut)}
+.ttl{font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,46px);font-weight:400;line-height:1.05;margin-bottom:8px}
+.ttl em{font-style:italic;color:var(--grn)}
+.sub{font-size:13px;color:var(--mut);max-width:520px;line-height:1.75;margin-bottom:36px}
+.div{height:1px;background:var(--bdr)}
+.div-full{height:1px;background:var(--bdr);margin:0 -28px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--bdr)}
+.callout{border-left:3px solid var(--grn);background:var(--gdim);padding:13px 16px;font-size:12px;color:#9ad9bc;line-height:1.7}
+.callout.a{border-left-color:var(--amb);background:var(--adim);color:#d9b87a}
+.callout.r{border-left-color:var(--red);background:var(--rdim);color:#d98888}
+.callout strong{font-weight:600}
+.tag{font-size:10px;padding:3px 9px;font-weight:500;display:inline-block;margin:2px}
+.tg{background:var(--gdim);color:var(--grn);border:1px solid var(--gbdr)}
+.ta{background:var(--adim);color:var(--amb);border:1px solid var(--abdr)}
+.tr{background:var(--rdim);color:var(--red);border:1px solid var(--rbdr)}
+
+/* ── VERDICT CARDS (8-car uniform grid) ── */
+.vc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+.vc-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.vc{background:var(--card);border:1px solid var(--bdr);padding:24px;position:relative;display:flex;flex-direction:column;gap:0}
+.vc:hover{border-color:rgba(61,186,126,0.2)}
+.vc.rec{border-color:var(--gbdr)}
+.vc.cau{border-color:var(--abdr)}
+.vc.over{border-color:var(--rbdr);opacity:0.8}
+.vc-badge{position:absolute;top:0;right:0;background:var(--grn);color:#000;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:4px 10px}
+.vc-n{font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mut);margin-bottom:5px}
+.vc-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;line-height:1.1;margin-bottom:4px}
+.vc-ins{font-size:11px;color:var(--mut);margin-bottom:8px}
+.vc-price{font-size:18px;font-weight:700;color:var(--grn);margin-bottom:4px}
+.vc-price span{font-size:11px;font-weight:300;color:var(--mut);margin-left:4px}
+.vc-text{font-size:12px;color:#9a9aaa;line-height:1.7;margin:10px 0;flex:1}
+.vc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
+
+/* ── COMPARISON TABLE ── */
+.ct{width:100%;border-collapse:collapse;font-size:12px}
+.ct th{padding:10px 12px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--bdr);background:var(--sur);text-align:center;font-weight:500}
+.ct th:first-child{text-align:left}
+.ct td{padding:10px 12px;border-bottom:1px solid rgba(42,42,51,0.5);text-align:center;vertical-align:middle}
+.ct td:first-child{text-align:left;font-weight:500;color:var(--ink)}
+.ct tr:hover td{background:rgba(255,255,255,0.02)}
+.ct tr.hl td{background:rgba(61,186,126,0.04)}
+.g{color:var(--grn)}.a{color:var(--amb)}.r{color:var(--red)}
+
+/* ── YEAR GRID ── */
+.yr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--bdr)}
+.yr-item{background:var(--card);padding:20px 18px}
+.yr-car{font-size:10px;font-weight:500;color:var(--mut);margin-bottom:5px}
+.yr-range{font-family:'Playfair Display',serif;font-size:24px;color:var(--grn);line-height:1;margin-bottom:5px}
+.yr-note{font-size:11px;color:var(--mut);line-height:1.5}
+
+/* ── INFO BLOCKS ── */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.ib{background:var(--card);border:1px solid var(--bdr);padding:24px}
+.ib h4{font-size:13px;font-weight:600;margin-bottom:14px;color:var(--ink)}
+.blist{list-style:none}
+.blist li{padding:8px 0;border-bottom:1px solid var(--bdr);font-size:12px;color:#a0a0b0;line-height:1.6;display:flex;gap:10px}
+.blist li:last-child{border-bottom:none}
+.blist li::before{content:'—';color:var(--mut);flex-shrink:0}
+.dr{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--bdr);font-size:12px;gap:12px}
+.dr:last-child{border-bottom:none}
+.dl{color:var(--mut)}
+.dv{font-weight:500;text-align:right}
+
+/* ── REQ GRID ── */
+.rq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--bdr)}
+.rq-item{background:var(--sur);padding:22px 18px}
+.rq-icon{font-size:20px;margin-bottom:8px;display:block}
+.rq-name{font-size:12px;font-weight:500;color:var(--ink);line-height:1.3}
+.rq-detail{font-size:10px;color:var(--mut);margin-top:3px}
+
+/* ── STEPS ── */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.step{background:var(--card);border:1px solid var(--bdr);padding:26px 22px}
+.step-n{font-family:'Playfair Display',serif;font-size:44px;color:var(--bdr);line-height:1;margin-bottom:12px}
+.step-t{font-size:13px;font-weight:500;margin-bottom:6px}
+.step-b{font-size:12px;color:var(--mut);line-height:1.7}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:100px 60px 72px;position:relative;overflow:hidden;background:var(--bg)}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 75% 20%,rgba(61,186,126,0.08) 0%,transparent 65%),radial-gradient(ellipse 40% 60% at 15% 85%,rgba(91,156,246,0.05) 0%,transparent 60%)}
+.hero-eyebrow{font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--grn);margin-bottom:22px;display:flex;align-items:center;gap:12px;position:relative}
+.hero-eyebrow::before{content:'';width:28px;height:1px;background:var(--grn)}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(48px,6.5vw,90px);font-weight:400;line-height:1.02;color:var(--ink);position:relative;max-width:700px}
+.hero h1 em{font-style:italic;color:#a8c8b8}
+.hero-sub{margin-top:28px;color:var(--mut);font-size:14px;max-width:480px;line-height:1.75;position:relative}
+.hero-meta{position:absolute;top:72px;right:60px;font-size:11px;color:#333;text-align:right;line-height:1.8}
+.chap{background:var(--sur);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);padding:18px 60px;display:flex;align-items:center;gap:20px}
+.chap-n{font-family:'Playfair Display',serif;font-size:44px;color:var(--bdr);line-height:1;flex-shrink:0}
+.chap-t h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:400}
+.chap-t p{font-size:12px;color:var(--mut);margin-top:2px}
+
+/* ── SAFETY TABLE ── */
+.st{width:100%;border-collapse:collapse;font-size:12px}
+.st th{padding:10px 12px;font-size:9px;text-transform:uppercase;letter-spacing:0.14em;color:var(--mut);border-bottom:1px solid var(--bdr);background:var(--sur);text-align:center;font-weight:500}
+.st th:first-child{text-align:left}
+.st td{padding:10px 12px;border-bottom:1px solid rgba(42,42,51,0.5);text-align:center;vertical-align:middle}
+.st td:first-child{text-align:left;font-weight:500;color:var(--ink)}
+.st tr:hover td{background:rgba(255,255,255,0.02)}
+.stars{color:var(--amb)}
+
+/* ── JOURNEY CHART ── */
+.jtog-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.jtog{padding:8px 18px;font-size:12px;font-weight:500;border:1px solid var(--bdr);background:transparent;color:var(--mut);cursor:pointer;transition:all 0.2s;font-family:inherit}
+.jtog.on{background:var(--gdim);color:var(--grn);border-color:var(--gbdr)}
+.chart-box{background:var(--card);border:1px solid var(--bdr);padding:28px 24px 20px}
+.ch-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;flex-wrap:wrap;gap:8px}
+.ch-ttl{font-family:'Playfair Display',serif;font-size:17px}
+.ch-meta{font-size:11px;color:var(--mut)}
+.route-ribbon{position:relative;height:78px;margin:18px 0 52px}
+.route-track{position:absolute;top:50%;left:0;right:0;height:3px;background:var(--bdr);transform:translateY(-50%)}
+.route-prog{position:absolute;top:0;left:0;height:100%;width:0;background:linear-gradient(90deg,var(--grn),var(--blu));transition:width 1s ease}
+.wp{position:absolute;top:50%;transform:translate(-50%,-50%)}
+.wp-dot{width:12px;height:12px;border-radius:50%;background:var(--bg);border:2.5px solid;margin:0 auto}
+.wp-top{position:absolute;bottom:calc(50% + 10px);left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap}
+.wp-top strong{display:block;font-size:11px;font-weight:500;color:var(--ink)}
+.wp-top span{font-size:9px;color:var(--mut)}
+.wp-bot{position:absolute;top:calc(50% + 10px);left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap;font-size:9px;color:var(--mut)}
+.bars-hdr{display:flex;align-items:center;margin-bottom:5px}
+.bar-lbl-col{width:110px;flex-shrink:0}
+.bar-trk-col{flex:1;min-width:0}
+.bar-ext-col{width:76px;flex-shrink:0;padding-left:8px;font-size:9px;color:var(--mut);letter-spacing:0.1em;text-transform:uppercase}
+.bars-scale{display:flex;justify-content:space-between}
+.bars-scale span{font-size:9px;color:var(--mut)}
+.bar-rows{display:flex;flex-direction:column;gap:5px}
+.bar-row{display:flex;align-items:center}
+.bar-lbl{width:110px;flex-shrink:0;font-size:11px;font-weight:500;text-align:right;padding-right:10px;color:var(--mut)}
+.bar-lbl.sel{color:var(--ink)}
+.bar-trk{flex:1;height:30px;background:var(--sur);border:1px solid var(--bdr);position:relative;cursor:pointer;transition:border-color 0.15s}
+.bar-trk:hover,.bar-trk.sel{border-color:var(--grn)}
+.bar-fill{position:absolute;left:0;top:0;height:100%;width:0;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;transition:width 0.75s cubic-bezier(0.4,0,0.2,1)}
+.bar-lbl-inner{font-size:10px;font-weight:700;color:rgba(0,0,0,0.85);white-space:nowrap;opacity:0;transition:opacity 0.3s 0.55s}
+.bar-lbl-inner.vis{opacity:1}
+.bar-ext{width:76px;flex-shrink:0;padding-left:8px;font-size:11px;font-weight:700;white-space:nowrap}
+.hw-box{background:var(--sur);border:1px solid var(--bdr);padding:18px 22px;margin-top:18px}
+.hw-box h4{font-size:11px;font-weight:600;color:var(--amb);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px}
+.hw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.hw-card{background:var(--card);padding:11px;border:1px solid var(--bdr)}
+.hw-car{font-size:10px;color:var(--mut);margin-bottom:3px}
+.hw-spd{font-size:13px;font-weight:700}
+.hw-kw{font-size:10px;color:var(--mut)}
+.cn{margin-top:12px;padding:10px 14px;font-size:12px;line-height:1.6;border-left:3px solid}
+
+/* ── BUDGET SLIDERS ── */
+.bpanel{background:var(--card);border:1px solid var(--bdr);padding:28px;margin-bottom:24px}
+.bpanel h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:24px}
+.sl-row{margin-bottom:24px}
+.sl-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.sl-head span{font-size:12px;color:var(--mut)}
+.sl-val{font-size:24px;font-weight:700}
+.sl-sub{font-size:12px;margin-top:6px;line-height:1.6}
+.rsl{-webkit-appearance:none;appearance:none;width:100%;height:4px;outline:none;cursor:pointer;border-radius:0}
+.rsl::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--grn);cursor:pointer;border:2px solid var(--bg)}
+.sl-ticks{display:flex;justify-content:space-between;margin-top:4px}
+.sl-ticks span{font-size:9px;color:var(--mut)}
+.lt{width:100%;border-collapse:collapse;font-size:12px}
+.lt th{padding:8px 12px;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--bdr);background:var(--sur);text-align:center;font-weight:500}
+.lt th:first-child{text-align:left}
+.lt td{padding:9px 12px;border-bottom:1px solid rgba(42,42,51,0.4);text-align:center}
+.lt td:first-child{text-align:left;font-weight:500;color:var(--ink)}
+.lt tr.best td{color:var(--grn);background:rgba(61,186,126,0.05)}
+.loan-info{background:var(--sur);border:1px solid var(--bdr);padding:20px 24px;margin-top:0}
+.loan-info h4{font-size:11px;font-weight:600;color:var(--amb);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px}
+
+/* ── CAR SELECTOR CHIPS ── */
+.chip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.chip{background:var(--card);border:1px solid var(--bdr);padding:14px 12px;cursor:pointer;position:relative;transition:border-color 0.15s,background 0.15s;user-select:none}
+.chip:hover{border-color:var(--mut)}
+.chip.sel{border-color:var(--grn);background:var(--gdim)}
+.chip.over{opacity:0.45}
+.chip-n{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mut);margin-bottom:3px}
+.chip-nm{font-size:12px;font-weight:500;color:var(--ink);line-height:1.3;margin-bottom:5px}
+.chip-p{font-size:15px;font-weight:700;margin-bottom:2px}
+.chip-i{font-size:10px;color:var(--mut)}
+.chip-s{font-size:10px;margin-top:4px}
+.chip-bdg{position:absolute;top:0;right:0;background:var(--grn);color:#000;font-size:8px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:3px 7px}
+
+/* ── COST PANEL ── */
+.cpanel{background:var(--card);border:1px solid var(--bdr);display:grid;grid-template-columns:1fr 1fr}
+.cpanel.hide{display:none}
+.cpl{padding:26px;border-right:1px solid var(--bdr);min-width:0}
+.cpr{padding:26px;background:var(--sur);min-width:0}
+.cp-nm{font-family:'Playfair Display',serif;font-size:24px;line-height:1.1;margin-bottom:4px}
+.cp-bdg{display:inline-block;font-size:9px;font-weight:700;padding:3px 10px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px}
+.fr{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:12px;gap:12px}
+.fr:last-child{border-bottom:none}
+.frl{color:var(--mut);flex-shrink:0}
+.frv{font-weight:500;text-align:right}
+.cr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:12px;gap:12px}
+.cr:last-of-type{border-bottom:none}
+.crl{color:var(--mut)}
+.crv{font-weight:500;text-align:right}
+.total-blk{margin-top:14px;padding-top:12px;border-top:2px solid var(--grn)}
+.total-l{font-size:11px;color:var(--mut);margin-bottom:3px}
+.total-v{font-size:22px;font-weight:700;color:var(--grn)}
+.rmini{height:5px;background:var(--bdr);margin:8px 0 14px}
+.rmini-fill{height:100%;transition:width 0.8s ease}
+.plt{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+.plt th{padding:6px 10px;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--bdr);text-align:center;font-weight:500;background:rgba(0,0,0,0.2)}
+.plt th:first-child{text-align:left}
+.plt td{padding:7px 10px;border-bottom:1px solid rgba(42,42,51,0.4);text-align:center}
+.plt td:first-child{text-align:left;color:var(--mut)}
+.plt tr.best td{color:var(--grn)}
+
+@media(max-width:860px){
+  .vc-grid{grid-template-columns:1fr 1fr}
+  .vc-grid-2{grid-template-columns:1fr}
+  .cpanel{grid-template-columns:1fr}
+  .cpl{border-right:none;border-bottom:1px solid var(--bdr)}
+  .two,.three,.steps{grid-template-columns:1fr}
+  .chip-grid{grid-template-columns:repeat(2,1fr)}
+  .hero{padding:80px 24px 56px}
+  .hero-meta{display:none}
+  .w{padding:0 18px}
+  nav{padding:0 16px}
+  .chap{padding:16px 18px}
+}
+@media(max-width:480px){
+  .vc-grid{grid-template-columns:1fr}
+  .chip-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nb">Car Explorer</div>
+  <div class="ntabs">
+    <button class="nt on" id="en-safety" onclick="expNav('exp-safety',this)">Safety</button>
+    <button class="nt" id="en-journeys" onclick="expNav('exp-journeys',this)">Journeys</button>
+    <button class="nt" id="en-budget" onclick="expNav('exp-budget',this)">Budget</button>
+    <button class="nt" id="en-selector" onclick="expNav('exp-selector',this)">Pick a car</button>
+    <span class="nt" style="margin-left:auto;color:var(--mut);font-size:10px;opacity:0.6;cursor:pointer;color:var(--grn)" onclick="window.location.href='ev_guide.html'">← Full Guide ↗</span>
+  </div>
+</nav>
+
+<div class="w">
+
+<!-- SAFETY -->
+<div class="sec" id="exp-safety">
+  <div class="lbl">Crash testing</div>
+  <div class="ttl">Female safety — <em>is it a concern?</em></div>
+  <p class="sub">Yes, and it's been a serious long-standing issue. Here's the honest picture and how our shortlist performs.</p>
+  <div class="callout a" style="margin-bottom:20px"><strong>The problem:</strong> A landmark 2019 University of Virginia study found women are <strong>73% more likely to be severely injured or die in a frontal crash</strong> than men in comparable accidents. Crash dummies have historically been modelled on a 50th-percentile male. That's a testing gap, not a biological one.</div>
+  <div class="two" style="margin-bottom:20px">
+    <div class="ib">
+      <h4>What Euro NCAP currently does</h4>
+      <div class="dr"><span class="dl">Female dummy in front passenger?</span><span class="dv a">Yes — since 2003</span></div>
+      <div class="dr"><span class="dl">Female dummy as driver?</span><span class="dv r">Not yet</span></div>
+      <div class="dr"><span class="dl">New US THOR-05F female dummy</span><span class="dv g">Launched Dec 2025</span></div>
+      <div class="dr"><span class="dl">Euro NCAP 2026/27 roadmap</span><span class="dv g">Female driver dummy coming</span></div>
+      <p style="font-size:11px;color:var(--mut);margin-top:12px;line-height:1.6">The gap is closing fast. Euro NCAP's next protocol update will require equal protection testing across both sexes in all positions. Cars tested after 2027 will face this standard.</p>
+    </div>
+    <div class="ib">
+      <h4>Who leads on female safety right now</h4>
+      <div class="dr"><span class="dl">Volvo</span><span class="dv g">Industry leader since 1990s</span></div>
+      <div class="dr"><span class="dl">Hyundai / Kia</span><span class="dv g">Consistently top Euro NCAP</span></div>
+      <div class="dr"><span class="dl">Renault</span><span class="dv g">Strong adult scores</span></div>
+      <div class="dr"><span class="dl">Skoda (VW Group)</span><span class="dv g">5★ high adult protection</span></div>
+      <div class="dr"><span class="dl">MG / Peugeot</span><span class="dv a">5★ but lower sub-scores</span></div>
+    </div>
+  </div>
+  <div style="overflow-x:auto">
+  <table class="st">
+    <thead><tr><th>Car</th><th>Stars</th><th>Adult %</th><th>Child %</th><th>VRU %</th><th>Safety Assist %</th><th>Female note</th></tr></thead>
+    <tbody>
+      <tr><td>Hyundai Ioniq 5</td><td><span class="stars">★★★★★</span></td><td class="g">91%</td><td class="g">85%</td><td class="g">82%</td><td class="g">95%</td><td style="font-size:11px;color:var(--mut)">Stable cabin. Centre airbag fitted.</td></tr>
+      <tr><td>Kia Niro EV</td><td><span class="stars">★★★★★</span></td><td class="g">87%</td><td class="g">87%</td><td class="a">78%</td><td class="g">91%</td><td style="font-size:11px;color:var(--mut)">Consistent across occupant sizes.</td></tr>
+      <tr><td>Skoda Enyaq</td><td><span class="stars">★★★★★</span></td><td class="g">89%</td><td class="g">88%</td><td class="a">76%</td><td class="g">90%</td><td style="font-size:11px;color:var(--mut)">Retested 2025 — scores maintained.</td></tr>
+      <tr><td>Renault Mégane E-Tech</td><td><span class="stars">★★★★★</span></td><td class="g">91%</td><td class="g">86%</td><td class="g">80%</td><td class="g">89%</td><td style="font-size:11px;color:var(--mut)">One of the best adult scores here.</td></tr>
+      <tr><td>Peugeot e-2008</td><td><span class="stars">★★★★★</span></td><td class="a">82%</td><td class="g">86%</td><td class="a">74%</td><td class="g">88%</td><td style="font-size:11px;color:var(--mut)">5★ but lower adult score than Korean rivals.</td></tr>
+      <tr><td>MG4 Long Range</td><td><span class="stars">★★★★★</span></td><td class="a">80%</td><td class="g">87%</td><td class="a">72%</td><td class="g">85%</td><td style="font-size:11px;color:var(--mut)">5★ overall, sub-scores lower.</td></tr>
+      <tr><td>Kia EV6</td><td><span class="stars">★★★★★</span></td><td class="g">90%</td><td class="g">91%</td><td class="g">82%</td><td class="g">93%</td><td style="font-size:11px;color:var(--mut)">Among the best on this list.</td></tr>
+      <tr><td>Volvo EX30</td><td><span class="stars">★★★★★</span></td><td class="g">96%</td><td class="g">92%</td><td class="g">85%</td><td class="g">96%</td><td style="font-size:11px;color:var(--mut)">Best here. Volvo leads female safety research.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout" style="margin-top:12px"><strong>Bottom line:</strong> All 8 cars are 5★. Best in-budget for female occupant protection: Ioniq 5 (91%), EV6 (90%), Mégane (91%). Volvo leads overall at 96% but is over budget.</div>
+</div>
+
+<div class="div"></div>
+
+<!-- JOURNEY CHART -->
+<div class="sec" id="exp-journeys">
+  <div class="lbl">Real journeys</div>
+  <div class="ttl">Can it make <em>the trip?</em></div>
+  <p class="sub">Real-world motorway range, miles remaining on arrival, and how long a halfway charge takes.</p>
+
+  <div class="callout" style="margin-bottom:20px">
+    <strong>Our estimated yearly mileage: ~5,060 miles.</strong> Based on 5 Runcorn trips (1,900mi), 12 Kent trips (1,560mi), 52 IKEA runs (900mi) and 52 Epping Forest visits (700mi). Well below the 7,500mi national average — quote this honestly on insurance for a lower premium. The Runcorn trip is the only real range test; everything else is trivial.
+  </div>
+  <div class="jtog-row">
+    <button class="jtog on" onclick="setJ('mum',this)">🏡 Home → Mum's (Runcorn) &amp; back</button>
+    <button class="jtog" onclick="setJ('kent',this)">🌿 Home → Kent &amp; back</button>
+  </div>
+  <div class="chart-box">
+    <div class="ch-head">
+      <div class="ch-ttl" id="ch-ttl">Manor Park → Runcorn WA7</div>
+      <div class="ch-meta" id="ch-meta">190 miles · 380 miles return</div>
+    </div>
+    <div id="route-rib" class="route-ribbon"></div>
+    <div class="bars-hdr">
+      <div class="bar-lbl-col"></div>
+      <div class="bar-trk-col"><div class="bars-scale"><span>0</span><span>80mi</span><span>160mi</span><span>240mi</span><span>320mi+</span></div></div>
+      <div class="bar-ext-col">Remaining</div>
+    </div>
+    <div class="bar-rows" id="bar-rows"></div>
+    <div id="cn"></div>
+    <div class="hw-box" id="hw-box">
+      <h4>⚡ Halfway charge stop — how long?</h4>
+      <div class="hw-grid" id="hw-grid"></div>
+      <p style="font-size:11px;color:var(--mut);margin-top:10px;line-height:1.6">10→80% at motorway rapid charger. Halfway on Runcorn route ≈ Northampton/Leicester services (M1 J15A). Green ≤20 min, amber ≤35 min, red = slower.</p>
+    </div>
+    <p style="font-size:10px;color:var(--mut);margin-top:14px;line-height:1.6">Range shown is real-world motorway estimate (65–70mph, climate on). Actual range varies by speed, temp, load. "Remaining" = miles left after reaching destination on a full charge.</p>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- BUDGET -->
+<div class="sec" id="exp-budget">
+  <div class="lbl">Budget &amp; finance</div>
+  <div class="ttl">What can we <em>afford?</em></div>
+  <p class="sub">Slide to set your budget. Past £14,500 the loan amount and mortgage impact are shown automatically — no separate slider needed.</p>
+
+  <div class="bpanel">
+    <h3>Our budget</h3>
+    <div class="sl-row">
+      <div class="sl-head"><span>Total budget (cash + any loan)</span><div class="sl-val" id="bval">£12,500</div></div>
+      <input type="range" class="rsl" id="bsl" min="10000" max="21000" step="500" value="12500" oninput="onBudget(this.value)">
+      <div class="sl-ticks"><span>£10k</span><span style="color:var(--amb)">▲ £12.5k cash</span><span style="color:var(--red)">▲ £14.5k stretch</span><span>£21k</span></div>
+      <div class="sl-sub" id="bsub"></div>
+    </div>
+    <div id="loan-section" style="display:none;margin-top:8px">
+      <div style="font-size:11px;font-weight:600;color:var(--amb);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">Loan top-up needed</div>
+      <div class="loan-info">
+        <h4 id="loan-title">Loan required</h4>
+        <table class="lt"><thead><tr><th>Term</th><th>APR</th><th>Monthly</th><th>Total interest</th><th>Total repaid</th></tr></thead>
+        <tbody id="lt-body"></tbody></table>
+        <p style="font-size:11px;color:var(--mut);margin-top:10px;line-height:1.6" id="loan-note"></p>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--card);border:1px solid var(--bdr);padding:22px">
+    <div style="font-size:12px;font-weight:600;margin-bottom:14px">Cars in range at current budget</div>
+    <div id="bavail" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px"></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- CAR SELECTOR -->
+<div class="sec" id="exp-selector">
+  <div class="lbl">Pick a car</div>
+  <div class="ttl">Select to see <em>your full costs</em></div>
+  <p class="sub">Monthly running costs for E12 5BE, street parking, two drivers, one year NCB each, home charging.</p>
+  <div class="chip-grid" id="chip-grid"></div>
+  <div class="cpanel hide" id="cpanel">
+    <div class="cpl" id="cpl"></div>
+    <div class="cpr" id="cpr"></div>
+  </div>
+</div>
+
+</div><!-- /w -->
+<div style="padding:28px;text-align:center;border-top:1px solid var(--bdr)">
+  <span style="font-size:11px;color:var(--mut);letter-spacing:0.1em">Prepared June 2026 · East London · Prices indicative — verify on AutoTrader</span>
+</div>
+<script>
+// ═══ PAGE SWITCHING ═══
+let curPage='guide';
+function showPage(id,btn){
+  curPage=id;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  document.querySelectorAll('.nt:not(.sub)').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const isGuide=id==='guide';
+  document.querySelectorAll('.nt.sub,.page-sep').forEach(el=>el.style.display=isGuide?'':'none');
+  window.scrollTo(0,0);
+  // Re-render explorer content now that it's visible
+  if(id==='explorer'){
+    setTimeout(()=>{
+      renderChart();
+      renderChips();
+      onBudget(totalBudget);
+    },50);
+  }
+}
+function scrollSec(id){
+  const el=document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// Explorer: initialise
+
+
+
+// ═══ CAR DATA ═══
+const MAX=320;
+const CARS=[
+  {id:'ioniq5',dealer:'Allen Briggs Hyundai|47-59 Chingford Mount Rd, E4 8LU|~5 miles|4.6★|020 8527 5004|https://maps.google.com/?cid=10682370344161018648',s:'Ioniq 5',n:'Hyundai Ioniq 5',col:'#3dba7e',r:245,rn:220,rx:270,cm:18,ck:220,boot:527,rear:'Excellent',head:'Excellent',ig:'33–36',il:93,im:100,ih:141,from:14000,to:17000,yr:'2021–22',war:'5yr/unlimited · Battery 8yr/100k · ICCU 15yr',cp:'Wired',rcam:true,over:false,tags:['Best headroom','Fastest charging','527L boot'],tts:['tg','tg','tg'],watch:'Verify 72kWh battery — avoid base 58kWh ICCU component now has 15-year extended warranty. Check Hyundai Promise Approved Used status for additional cover.',verd:"Top overall pick. Exceptional headroom for 6'2\", ultra-fast charging, 527L boot.",adult:91},
+  {id:'niro',dealer:'Glyn Hopkin Kia East London|1021 Romford Rd, E12 5LH|~1 mile|4.4★|020 8988 5547|https://maps.google.com/?cid=13001822311322177428',s:'Niro EV',n:'Kia Niro EV',col:'#5b9cf6',r:225,rn:200,rx:250,cm:45,ck:100,boot:475,rear:'Good',head:'Good',ig:'28–29',il:76,im:105,ih:124,from:14000,to:19000,yr:'2022–23',war:'7yr/100k miles · Battery 7yr/100k · Transferable',cp:'Wired',rcam:true,over:false,tags:['Lowest insurance','7yr warranty','Reliable'],tts:['tg','tg','tg'],watch:'Full service history needed for warranty — verify before any offer.',verd:'Real quotes confirm it: Admiral LittleBox £76/mo vs £93/mo for the Ioniq 5. Saves £204/yr on insurance alone — plus 7-year warranty and strong reliability.',adult:87},
+  {id:'enyaq',dealer:'Trans City Škoda|65-71 Hoe St, Walthamstow E17 4SA|~4 miles|4.4★|020 8520 6758',s:'Enyaq',n:'Skoda Enyaq',col:'#a78bfa',r:260,rn:240,rx:290,cm:30,ck:135,boot:585,rear:'Excellent',head:'Excellent',ig:'27–37',il:80,im:95,ih:115,from:14000,to:18000,yr:'2021–22 (80/85)',war:'3yr/60k · Battery 8yr/100k · Extendable to 5yr',cp:'Wired',rcam:true,over:false,tags:['Biggest boot 585L','Best rear space','Fast charging'],tts:['tg','tg','tg'],watch:'Go for the 80 or 85 (77kWh). Avoid the 60 — much less range CRITICAL: Verify battery warranty not stripped — some ex-demo/test cars had it removed before resale. Ask for written confirmation.',verd:'Biggest car for the money. 585L boot and excellent rear depth for George\'s bed.',adult:89},
+  {id:'megane',dealer:'Renault Romford|A127 Southend Arterial Rd, RM3 0EZ|~11 miles|4.6★|01708 794000|https://maps.google.com/?cid=14022506302406216384',s:'Mégane',n:'Renault Mégane E-Tech',col:'#e8a94a',r:245,rn:220,rx:265,cm:30,ck:130,boot:440,rear:'OK – test first',head:'Test needed',ig:'25–27',il:70,im:80,ih:95,from:16000,to:21000,yr:'2022–23',war:'5yr/100k miles · Battery 8yr/100k · Transferable',cp:'Wired',rcam:true,over:false,tags:['Lowest ins. group','440L boot','5yr warranty'],tts:['tg','tg','tg'],watch:'Low roofline — rear headroom needs testing at 6\'2″. High boot lip can be awkward.',verd:'Lowest insurance group. Excellent infotainment. Low roof means test drive is essential.',adult:91},
+  {id:'e2008',dealer:'Stellantis &You Peugeot Chingford|457 Chingford Rd, E4 8SP|~5 miles|4.2★|020 8498 3100|https://maps.google.com/?cid=11642864223475242497',s:'e-2008',n:'Peugeot e-2008',col:'#f472b6',r:195,rn:175,rx:215,cm:50,ck:100,boot:434,rear:'OK',head:'OK – test first',ig:'25–27',il:70,im:80,ih:95,from:11000,to:17000,yr:'2021–23 (GT trim)',war:'3yr standard · Battery 8yr/100k · Allure Care 2024+ new only',cp:'Wired',rcam:'GT trim only',over:false,tags:['Most affordable','Low insurance','434L boot'],tts:['tg','tg','tg'],watch:'Rev camera on GT trim only — verify before buying. iCockpit is divisive — test drive essential Allure Care long-term cover (up to 8yr/100k) only applies to cars sold NEW from July 2024 — used 2021–23 examples get standard 3yr only.',verd:'Most affordable. Lower insurance. The iCockpit must be tried before committing.',adult:82},
+  {id:'mg4',dealer:'Glyn Hopkin MG East London|1021 Romford Rd, E12 5LH|~1 mile|4.3★|020 8988 5684|https://maps.google.com/?cid=10042701183849410738',s:'MG4',n:'MG4 Long Range',col:'#fb923c',r:250,rn:230,rx:265,cm:28,ck:150,boot:363,rear:'OK',head:'Good',ig:'27–29',il:80,im:90,ih:105,from:14000,to:18000,yr:'2023–24 Trophy',war:'7yr/80k miles · Battery 8yr/100k · Transferable',cp:'Wireless',rcam:true,over:false,tags:['Wireless CarPlay/AA','Fast charging','7yr warranty'],tts:['tg','tg','tg'],watch:'363L boot is smallest on list — measure George\ Infotainment and convenience systems only covered for 3yr — not the full 7yr. Annual anti-corrosion inspection required to maintain cover.'s cage first. Thinner dealer network.',verd:'Only wireless CarPlay/AA. Fast charging. 363L boot is the key question.',adult:80},
+  {id:'ev6',dealer:'Glyn Hopkin Kia East London|1021 Romford Rd, E12 5LH|~1 mile|4.4★|020 8988 5547|https://maps.google.com/?cid=13001822311322177428',s:'EV6',n:'Kia EV6',col:'#34d399',r:285,rn:265,rx:300,cm:18,ck:220,boot:490,rear:'Good',head:'Test needed',ig:'33–37',il:93,im:110,ih:145,from:17000,to:20000,yr:'2022 only',war:'7yr/100k miles · Battery 7yr/100k · ICCU 15yr',cp:'Wired',rcam:true,over:false,tags:['Longest range','Ultra-fast charging','490L boot'],tts:['tg','tg','tg'],watch:"Lower roofline than Ioniq 5 — must test headroom at 6'2\" before committing.",verd:"Best range. Same 800V fast charging as Ioniq 5. Lower roof needs in-person test.",adult:90},
+  {id:'ex30',dealer:'Endeavour Volvo Romford|69 Hainault Rd, Romford RM5 3AD|~8 miles|4.4★|020 4527 4009|https://maps.google.com/?cid=106344838283043112',s:'EX30',n:'Volvo EX30',col:'#94a3b8',r:220,rn:195,rx:240,cm:27,ck:153,boot:318,rear:'Tight in rear',head:'Front OK / rear cramped',ig:'35–40',il:120,im:140,ih:165,from:20000,to:25000,yr:'2023–24',war:'3yr/60k miles · Battery 8yr/100k · Extendable to 4yr',cp:'Wired',rcam:true,over:true,tags:['Best safety scores','Premium brand','Fast charging'],tts:['tg','tg','tg'],watch:'Over budget. Highest insurance group. 318L boot smallest on list. Revisit in 2–3 years Shortest vehicle warranty on the list at 3yr/60k. Factor into value assessment versus Korean rivals.',verd:'Best safety scores but over budget, highest insurance, smallest boot. One for the future.',adult:96}
+];
+
+const JOURNEYS={
+  mum:{l:'Manor Park → Runcorn WA7',mi:190,meta:'190 miles · 380 miles return · M1/M6 motorway route',
+    wps:[{p:0,t:'Home',b:'Manor Park E12',c:'#e8a94a'},{p:0.5,t:'Halfway stop',b:'~Northampton (M1 J15)',c:'#3dba7e'},{p:1,t:"Mum's",b:'Runcorn WA7',c:'#5b9cf6'}]},
+  kent:{l:'Manor Park → Kent',mi:65,meta:'65 miles · 130 miles return · A2/M25 route',
+    wps:[{p:0,t:'Home',b:'Manor Park E12',c:'#e8a94a'},{p:0.5,t:'Dartford',b:'~25 miles',c:'#3dba7e'},{p:1,t:'Kent',b:'~Maidstone/Ashford',c:'#5b9cf6'}]}
+};
+
+// ═══ STATE ═══
+let curJ='mum', selCar=null, totalBudget=12500;
+
+// ═══ BUDGET ═══
+function fmt(n){return'£'+Math.round(n).toLocaleString()}
+function bgGrad(v){
+  const mn=10000,mx=21000,lo=12500,hi=14500;
+  const toP=x=>(x-mn)/(mx-mn)*100;
+  const vp=toP(v);
+  if(v<=lo) return`linear-gradient(90deg,var(--grn) ${vp}%,var(--bdr) ${vp}%)`;
+  if(v<=hi) return`linear-gradient(90deg,var(--grn) ${toP(lo)}%,var(--amb) ${toP(lo)}%,var(--amb) ${vp}%,var(--bdr) ${vp}%)`;
+  return`linear-gradient(90deg,var(--grn) ${toP(lo)}%,var(--amb) ${toP(lo)}%,var(--amb) ${toP(hi)}%,var(--red) ${toP(hi)}%,var(--red) ${vp}%,var(--bdr) ${vp}%)`;
+}
+function onBudget(v){
+  totalBudget=parseInt(v);
+  const sl=document.getElementById('bsl');
+  sl.style.background=bgGrad(totalBudget);
+  const col=totalBudget<=12500?'var(--grn)':totalBudget<=14500?'var(--amb)':'var(--red)';
+  document.getElementById('bval').style.color=col;
+  document.getElementById('bval').textContent=fmt(totalBudget);
+
+  const cashBase=12500;
+  const loanNeeded=Math.max(0,totalBudget-cashBase);
+  const note=totalBudget<=12500?'✓ Pure cash — cleanest scenario. Zero mortgage impact.':
+    totalBudget<=14500?`⚠ ${fmt(totalBudget-cashBase)} above core cash. Manageable but speak to broker before applying.`:
+    `⛔ ${fmt(loanNeeded)} loan needed above base cash. Discuss with mortgage broker first — this reduces your mortgage offer.`;
+  document.getElementById('bsub').innerHTML=`<span style="color:${col}">${note}</span>`;
+
+  const ls=document.getElementById('loan-section');
+  if(loanNeeded>0){
+    ls.style.display='block';
+    document.getElementById('loan-title').textContent=`Loan: ${fmt(loanNeeded)} (budget beyond £12,500 cash)`;
+    const scenarios=[{y:2,r:0.089},{y:4,r:0.072},{y:6,r:0.079}];
+    document.getElementById('lt-body').innerHTML=scenarios.map((s,i)=>{
+      const n=s.y*12,rm=s.r/12;
+      const mo=loanNeeded*(rm*Math.pow(1+rm,n))/(Math.pow(1+rm,n)-1);
+      const tot=mo*n, int=tot-loanNeeded;
+      return`<tr class="${i===1?'best':''}"><td>${s.y} yrs</td><td>${(s.r*100).toFixed(1)}%</td><td style="font-weight:600">${fmt(mo)}/mo</td><td>~${fmt(int)}</td><td>${fmt(tot)}</td></tr>`;
+    }).join('');
+    const r4=0.072/12,n4=48;
+    const mo4=loanNeeded*(r4*Math.pow(1+r4,n4))/(Math.pow(1+r4,n4)-1);
+    document.getElementById('loan-note').textContent=`4-year term recommended — best balance. Monthly repayment of ${fmt(mo4)} could reduce mortgage offer by ~${fmt(mo4*170)}. Use MoneySuperMarket soft-search before applying.`;
+  } else {
+    ls.style.display='none';
+  }
+  renderBAvail();
+  if(selCar) renderCostPanel();
+}
+function renderBAvail(){
+  document.getElementById('bavail').innerHTML=CARS.map(c=>{
+    const ok=c.from<=totalBudget;
+    return`<div style="background:var(--card);border:1px solid ${ok?'var(--gbdr)':'var(--bdr)'};padding:10px 12px">
+      <div style="font-size:10px;color:var(--mut);margin-bottom:2px">${c.s}</div>
+      <div style="font-size:12px;font-weight:600;color:${ok?'var(--grn)':'var(--mut)'}">${ok?'✓ In range':'✗ '+fmt(c.from-totalBudget)+' short'}</div>
+      <div style="font-size:10px;color:var(--mut)">from ${fmt(c.from)}
+    </div>`;
+  }).join('');
+}
+
+// ═══ JOURNEY CHART ═══
+function setJ(id,btn){
+  curJ=id;
+  document.querySelectorAll('.jtog').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderChart();
+}
+function renderChart(){
+  const j=JOURNEYS[curJ];
+  document.getElementById('ch-ttl').textContent=j.l;
+  document.getElementById('ch-meta').textContent=j.meta;
+  // Route ribbon
+  const rib=document.getElementById('route-rib');
+  rib.innerHTML=`<div class="route-track"><div class="route-prog" id="rp"></div>
+    ${j.wps.map(w=>`<div class="wp" style="left:${w.p*100}%">
+      <div class="wp-top"><strong>${w.t}</strong><span>${w.b}</span></div>
+      <div class="wp-dot" style="border-color:${w.c}"></div>
+      <div class="wp-bot">${Math.round(w.p*j.mi)} mi</div>
+    </div>`).join('')}
+  </div>`;
+  setTimeout(()=>{const r=document.getElementById('rp');if(r)r.style.width='100%'},50);
+  // Bars
+  const br=document.getElementById('bar-rows');
+  br.innerHTML='';
+  CARS.forEach((car,idx)=>{
+    const fp=Math.min(car.r/MAX*100,100);
+    const dp=Math.min(j.mi/MAX*100,97);
+    const rp2=Math.min(j.mi*2/MAX*100,97);
+    const rem=car.r-j.mi;
+    const isSel=selCar&&selCar.id===car.id;
+    const remCol=rem>=50?'var(--grn)':rem>=10?'var(--amb)':'var(--red)';
+    const remTxt=rem>=0?`+${rem}mi`:`−${Math.abs(rem)}mi`;
+    const row=document.createElement('div');
+    row.className='bar-row';
+    row.style.opacity=car.over?'0.38':'1';
+    row.innerHTML=`
+      <div class="bar-lbl${isSel?' sel':''}">${car.s}</div>
+      <div style="flex:1;min-width:0;position:relative">
+        <div class="bar-trk${isSel?' sel':''}" onclick="selectCar('${car.id}')" style="border-color:${isSel?'var(--grn)':'var(--bdr)'}">
+          <div class="bar-fill" id="bf-${car.id}" style="background:${car.col}88">
+            <span class="bar-lbl-inner" id="bfi-${car.id}">${car.r}mi</span>
+          </div>
+          <div style="position:absolute;left:${dp}%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.18);pointer-events:none">
+            <span style="position:absolute;top:-14px;left:2px;font-size:8px;color:rgba(255,255,255,0.35);white-space:nowrap">${j.mi}mi</span>
+          </div>
+          ${j.mi*2<=MAX?`<div style="position:absolute;left:${rp2}%;top:0;bottom:0;width:2px;background:rgba(224,90,90,0.38);pointer-events:none">
+            <span style="position:absolute;top:-14px;left:2px;font-size:8px;color:rgba(224,90,90,0.45);white-space:nowrap">${j.mi*2}mi</span>
+          </div>`:''}
+        </div>
+      </div>
+      <div class="bar-ext" style="color:${remCol}">${remTxt}</div>`;
+    br.appendChild(row);
+    setTimeout(()=>{
+      const bf=document.getElementById(`bf-${car.id}`);
+      const bfi=document.getElementById(`bfi-${car.id}`);
+      if(bf) bf.style.width=fp+'%';
+      if(bfi) bfi.classList.add('vis');
+    },60+idx*65);
+  });
+  // Charge note
+  const cn=document.getElementById('cn');
+  const need=CARS.filter(c=>!c.over&&c.r<j.mi);
+  if(j.mi>200&&need.length>0)
+    cn.innerHTML=`<div class="cn" style="background:var(--adim);border-color:var(--amb);color:#d9b87a">⚡ <strong>${need.map(c=>c.s).join(', ')}</strong> need a charge stop for the one-way ${j.mi}-mile trip. White = one-way mark, red = return total.</div>`;
+  else if(j.mi<=150)
+    cn.innerHTML=`<div class="cn" style="background:var(--gdim);border-color:var(--grn);color:#9ad9bc">✓ All cars complete the ${j.mi}-mile journey easily. Return trip (${j.mi*2}mi) is no issue either.</div>`;
+  else
+    cn.innerHTML=`<div class="cn" style="background:var(--gdim);border-color:var(--grn);color:#9ad9bc">✓ All in-budget cars complete the one-way trip. Check remaining miles (right) for arrival range.</div>`;
+  // Halfway box
+  const hw=document.getElementById('hw-box');
+  if(j.mi>120){
+    hw.style.display='block';
+    document.getElementById('hw-grid').innerHTML=CARS.map(c=>`<div class="hw-card">
+      <div class="hw-car">${c.s}</div>
+      <div class="hw-spd" style="color:${c.cm<=20?'var(--grn)':c.cm<=35?'var(--amb)':'var(--red)'}">${c.cm} min</div>
+      <div class="hw-kw">10→80% · ${c.ck}kW</div>
+    </div>`).join('');
+  } else { hw.style.display='none'; }
+}
+
+// ═══ CAR CHIPS ═══
+function renderChips(){
+  document.getElementById('chip-grid').innerHTML=CARS.map((c,i)=>{
+    const isSel=selCar&&selCar.id===c.id;
+    const isOver=c.from>totalBudget;
+    return`<div class="chip${isSel?' sel':''}${isOver?' over':''}" onclick="selectCar('${c.id}')">
+      ${isSel?'<div class="chip-bdg">Selected</div>':''}
+              <div class="chip-n">0${i+1}</div>
+        <div class="chip-nm">${c.s}</div>
+        <div class="chip-p" style="color:${isOver?'var(--mut)':'var(--grn)'}">${fmt(c.from)}+</div>
+        <div class="chip-i">Group ${c.ig}</div>
+        <div class="chip-s" style="color:${isOver?'var(--red)':isSel?'var(--grn)':'var(--mut)'}">${isOver?'⚠ Over budget':isSel?'✓ Selected':c.yr}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ COST PANEL ═══
+function selectCar(id){
+  selCar=CARS.find(c=>c.id===id);
+  renderChips();
+  renderChart();
+  renderCostPanel();
+  document.getElementById('cpanel').classList.remove('hide');
+  setTimeout(()=>document.getElementById('cpanel').scrollIntoView({behavior:'smooth',block:'start'}),80);
+}
+function renderCostPanel(){
+  if(!selCar) return;
+  const c=selCar;
+  const cashBase=12500;
+  const loanForCar=Math.max(0,c.from-cashBase);
+  const r4=0.072/12,n4=48;
+  const mo4=loanForCar>0?c.from===14000?0:loanForCar*(r4*Math.pow(1+r4,n4))/(Math.pow(1+r4,n4)-1):0;
+  // If car is within cash budget, no loan needed regardless of total budget slider
+  const actualLoan=c.from<=12500?0:Math.max(0,c.from-cashBase);
+  const actualMo4=actualLoan>0?actualLoan*(r4*Math.pow(1+r4,n4))/(Math.pow(1+r4,n4)-1):0;
+
+  const rp=Math.min(c.r/MAX*100,100);
+  const col=c.il<95?'var(--grn)':c.il<120?'var(--amb)':'var(--red)';
+  const badgeTxt=c.il<95?'Lower insurance':c.il<120?'Mid insurance':'Higher insurance';
+
+  document.getElementById('cpl').innerHTML=`
+    <div class="cp-nm">${c.n}</div>
+    <div class="cp-bdg" style="background:${c.il<95?'var(--gdim)':c.il<120?'var(--adim)':'var(--rdim)'};color:${col}">${badgeTxt}</div>
+    <div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-bottom:3px"><span>Real-world range</span><span>${c.rn}–${c.rx} miles</span></div>
+      <div class="rmini"><div class="rmini-fill" id="rmf" style="background:${c.col};width:0"></div></div>
+    </div>
+    <div class="fr"><span class="frl">Used price</span><span class="frv">${fmt(c.from)} – ${fmt(c.to)}</span></div>
+    <div class="fr"><span class="frl">Target years</span><span class="frv">${c.yr}</span></div>
+    <div class="fr"><span class="frl">Real range</span><span class="frv g">${c.rn}–${c.rx} miles</span></div>
+    <div class="fr"><span class="frl">Charge 10–80%</span><span class="frv ${c.cm<=20?'g':c.cm<=35?'':'a'}">${c.cm} min · ${c.ck}kW</span></div>
+    <div class="fr"><span class="frl">Boot</span><span class="frv">${c.boot} litres</span></div>
+    <div class="fr"><span class="frl">Rear space / George</span><span class="frv ${c.rear.includes('Excellent')?'g':c.rear.includes('tight')||c.rear.includes('Tight')?'r':'a'}">${c.rear}</span></div>
+    <div class="fr"><span class="frl">Headroom 6′2″</span><span class="frv ${c.head.includes('Excellent')?'g':c.head.includes('Test')||c.head.includes('test')?'a':''}">${c.head}</span></div>
+    <div class="fr"><span class="frl">Insurance group</span><span class="frv ${parseInt(c.ig)<=29?'g':parseInt(c.ig)>=35?'r':'a'}">${c.ig}</span></div>
+    <div class="fr"><span class="frl">CarPlay / AA</span><span class="frv g">✓ ${c.cp}</span></div>
+    <div class="fr"><span class="frl">Reversing camera</span><span class="frv ${c.rcam===true?'g':'a'}">${c.rcam===true?'✓ Standard':c.rcam}</span></div>
+    <div class="fr"><span class="frl">Euro NCAP adult</span><span class="frv g">★★★★★ · ${c.adult}%</span></div>
+    <div class="fr"><span class="frl">Warranty</span><span class="frv">${c.war}</span></div>
+    ${(()=>{const p=c.dealer.split('|');return`<div class="fr" style="flex-direction:column;align-items:flex-start;gap:3px;padding:9px 0"><span class="frl" style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em">Nearest dealer · ${p[2]}</span><a href="${p[5]}" target="_blank" style="font-size:12px;font-weight:500;color:var(--grn);text-decoration:none">📍 ${p[0]} ↗</a><span style="font-size:11px;color:var(--mut)">${p[1]}</span><span style="font-size:11px;color:var(--mut)">${p[3]} · ${p[4]}</span></div>`;})()}
+    <div style="margin-top:12px">${c.tags.map((t,i)=>`<span class="tag ${c.tts[i]}">${t}</span>`).join('')}</div>
+    <div style="margin-top:12px;background:var(--adim);border-left:3px solid var(--amb);padding:10px 14px;font-size:11px;color:#d9b87a;line-height:1.6"><strong style="display:block;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--amb);margin-bottom:3px">Watch out for</strong>${c.watch}</div>`;
+  setTimeout(()=>{const r=document.getElementById('rmf');if(r)r.style.width=rp+'%'},80);
+
+  const insAvg=(c.il+c.ih)/2;
+  const tLo=Math.round(c.il+30+16+20+10+9+actualMo4);
+  const tHi=Math.round(c.ih+55+16+35+15+9+actualMo4);
+
+  document.getElementById('cpr').innerHTML=`
+    <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:2px">Monthly running costs</div>
+    <p style="font-size:11px;color:var(--mut);margin-bottom:18px">E12 5BE · Street parking · 2 drivers · 1yr NCB · Home charging</p>
+    <div class="cr"><span class="crl">Insurance (with telematics)</span><span class="crv">${fmt(c.il)}–${fmt(c.ih)}/mo</span></div>
+    <div class="cr"><span class="crl">Home charging (Octopus Go)</span><span class="crv g">£30–55/mo</span></div>
+    <div class="cr"><span class="crl">Road tax (VED)</span><span class="crv">£16/mo</span></div>
+    <div class="cr"><span class="crl">Service + tyres (averaged)</span><span class="crv">£20–35/mo</span></div>
+    <div class="cr"><span class="crl">Roadside assistance</span><span class="crv">£10–15/mo</span></div>
+    <div class="cr"><span class="crl">Newham parking permit</span><span class="crv">~£9/mo</span></div>
+    ${actualLoan>0?`<div class="cr" style="color:var(--amb)"><span class="crl">Loan (${fmt(actualLoan)} @ 7.2%/4yr)</span><span class="crv a">~${fmt(actualMo4)}/mo</span></div>`:`<div class="cr"><span class="crl">Loan repayment</span><span class="crv g">£0 — cash ✓</span></div>`}
+    <div class="total-blk"><div class="total-l">Est. total / month</div><div class="total-v">${fmt(tLo)}–${fmt(tHi)}</div></div>
+    ${actualLoan>0?`
+    <div style="margin-top:18px">
+      <div style="font-size:10px;font-weight:600;color:var(--amb);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Loan options — ${fmt(actualLoan)}</div>
+      <table class="plt"><thead><tr><th>Term</th><th>APR</th><th>Monthly</th><th>Total interest</th></tr></thead>
+      <tbody>${[{y:2,r:0.089},{y:4,r:0.072},{y:6,r:0.079}].map((s,i)=>{
+        const n=s.y*12,rm=s.r/12;
+        const mo=actualLoan*(rm*Math.pow(1+rm,n))/(Math.pow(1+rm,n)-1);
+        const int=mo*n-actualLoan;
+        return`<tr class="${i===1?'best':''}"><td>${s.y}yr</td><td>${(s.r*100).toFixed(1)}%</td><td style="font-weight:600">${fmt(mo)}/mo</td><td>~${fmt(int)}</td></tr>`;
+      }).join('')}</tbody></table>
+    </div>
+    <div class="callout a" style="margin-top:10px"><strong>Mortgage note:</strong> ${fmt(actualLoan)} loan at ${fmt(actualMo4)}/mo could reduce mortgage offer by ~${fmt(actualMo4*170)}. Speak to broker before applying.</div>`
+    :`<div class="callout" style="margin-top:10px"><strong>Cash purchase</strong> — within your core budget. No loan, no mortgage impact. Cleanest option.</div>`}
+    <div style="margin-top:12px;font-size:12px;color:var(--mut);line-height:1.75">${c.verd}</div>
+    <div style="margin-top:12px;background:var(--gdim);border:1px solid var(--gbdr);padding:10px 14px;font-size:11px;color:#9ad9bc;line-height:1.6">
+      <strong>Search AutoTrader:</strong> ${c.n} · Used · Under ${fmt(c.to)} · ${c.yr} · within 100mi of E12 5BE
+    </div>`;
+}
+
+// ═══ INIT ═══
+onBudget(12500);
+renderChart();
+renderChips();
+</script>
+<script>
+function expNav(id, btn){
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  if(btn){
+    document.querySelectorAll('.nt[id^="en-"]').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+  }
+}
+// scroll highlight
+['exp-safety','exp-journeys','exp-budget','exp-selector'].forEach((id,i)=>{
+  const navBtns = document.querySelectorAll('.nt[id^="en-"]');
+  new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){
+      navBtns.forEach(b=>b.classList.remove('on'));
+      if(navBtns[i]) navBtns[i].classList.add('on');
+    }
+  },{threshold:0.2,rootMargin:'-52px 0px 0px 0px'}).observe(document.getElementById(id));
+});
+</script>
+</body>
+</html>
