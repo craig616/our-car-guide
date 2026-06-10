@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Car Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0e10;--sur:#16161a;--card:#1e1e24;--bdr:#2a2a33;
+  --ink:#f0eee8;--mut:#6a6a7c;
+  --grn:#3dba7e;--gdim:rgba(61,186,126,0.12);--gbdr:rgba(61,186,126,0.3);
+  --amb:#e8a94a;--adim:rgba(232,169,74,0.12);--abdr:rgba(232,169,74,0.3);
+  --red:#e05a5a;--rdim:rgba(224,90,90,0.1);--rbdr:rgba(224,90,90,0.25);
+  --blu:#5b9cf6;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-weight:300;line-height:1.6;min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr)}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:300;background:rgba(14,14,16,0.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--bdr);height:52px;display:flex;flex-direction:row;align-items:stretch;padding:0 24px;gap:0}
+.nb{font-family:'Playfair Display',serif;font-size:14px;color:var(--ink);margin-right:20px;flex-shrink:0;white-space:nowrap;display:flex;align-items:center;}
+.ntabs{display:flex;align-items:stretch;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;flex:1}
+.ntabs::-webkit-scrollbar{display:none}
+.nt{height:52px;padding:0 14px;display:flex;align-items:center;font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mut);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;font-family:inherit;white-space:nowrap;transition:color 0.2s,border-color 0.2s}
+.nt:hover{color:var(--ink)}
+.nt.on{color:var(--grn);border-bottom-color:var(--grn)}
+.nt.sub{color:var(--mut);font-size:10px;opacity:0.7}
+.nt.sub.on{color:var(--grn);opacity:1}
+.page-sep{width:1px;height:24px;background:var(--bdr);margin:0 8px;flex-shrink:0}
+
+/* ── PAGES ── */
+.page{display:none}.page.on{display:block}
+
+/* ── WRAP ── */
+.w{max-width:1100px;margin:0 auto;padding:0 28px}
+.sec{padding:60px 0}
+.lbl{font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.lbl::before{content:'';width:18px;height:1px;background:var(--mut)}
+.ttl{font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,46px);font-weight:400;line-height:1.05;margin-bottom:8px}
+.ttl em{font-style:italic;color:var(--grn)}
+.sub{font-size:13px;color:var(--mut);max-width:520px;line-height:1.75;margin-bottom:36px}
+.div{height:1px;background:var(--bdr)}
+.div-full{height:1px;background:var(--bdr);margin:0 -28px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--bdr)}
+.callout{border-left:3px solid var(--grn);background:var(--gdim);padding:13px 16px;font-size:12px;color:#9ad9bc;line-height:1.7}
+.callout.a{border-left-color:var(--amb);background:var(--adim);color:#d9b87a}
+.callout.r{border-left-color:var(--red);background:var(--rdim);color:#d98888}
+.callout strong{font-weight:600}
+.tag{font-size:10px;padding:3px 9px;font-weight:500;display:inline-block;margin:2px}
+.tg{background:var(--gdim);color:var(--grn);border:1px solid var(--gbdr)}
+.ta{background:var(--adim);color:var(--amb);border:1px solid var(--abdr)}
+.tr{background:var(--rdim);color:var(--red);border:1px solid var(--rbdr)}
+
+/* ── VERDICT CARDS (8-car uniform grid) ── */
+.vc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+.vc-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.vc{background:var(--card);border:1px solid var(--bdr);padding:24px;position:relative;display:flex;flex-direction:column;gap:0}
+.vc:hover{border-color:rgba(61,186,126,0.2)}
+.vc.rec{border-color:var(--gbdr)}
+.vc.cau{border-color:var(--abdr)}
+.vc.over{border-color:var(--rbdr);opacity:0.8}
+.vc-badge{position:absolute;top:0;right:0;background:var(--grn);color:#000;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:4px 10px}
+.vc-n{font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mut);margin-bottom:5px}
+.vc-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;line-height:1.1;margin-bottom:4px}
+.vc-ins{font-size:11px;color:var(--mut);margin-bottom:8px}
+.vc-price{font-size:18px;font-weight:700;color:var(--grn);margin-bottom:4px}
+.vc-price span{font-size:11px;font-weight:300;color:var(--mut);margin-left:4px}
+.vc-text{font-size:12px;color:#9a9aaa;line-height:1.7;margin:10px 0;flex:1}
+.vc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.vc-dealer{margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr)}
+.vc-dealer-name{font-size:11px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.vc-dealer-addr{font-size:10px;color:var(--mut);line-height:1.4}
+.vc-dealer-meta{font-size:10px;color:var(--grn);margin-top:3px}
+
+/* ── COMPARISON TABLE ── */
+.ct{width:100%;border-collapse:collapse;font-size:12px}
+.ct th{padding:10px 12px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--bdr);background:var(--sur);text-align:center;font-weight:500}
+.ct th:first-child{text-align:left}
+.ct td{padding:10px 12px;border-bottom:1px solid rgba(42,42,51,0.5);text-align:center;vertical-align:middle}
+.ct td:first-child{text-align:left;font-weight:500;color:var(--ink)}
+.ct tr:hover td{background:rgba(255,255,255,0.02)}
+.ct tr.hl td{background:rgba(61,186,126,0.04)}
+.g{color:var(--grn)}.a{color:var(--amb)}.r{color:var(--red)}
+
+/* ── YEAR GRID ── */
+.yr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--bdr)}
+.yr-item{background:var(--card);padding:20px 18px}
+.yr-car{font-size:10px;font-weight:500;color:var(--mut);margin-bottom:5px}
+.yr-range{font-family:'Playfair Display',serif;font-size:24px;color:var(--grn);line-height:1;margin-bottom:5px}
+.yr-note{font-size:11px;color:var(--mut);line-height:1.5}
+
+/* ── INFO BLOCKS ── */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.ib{background:var(--card);border:1px solid var(--bdr);padding:24px}
+.ib h4{font-size:13px;font-weight:600;margin-bottom:14px;color:var(--ink)}
+.blist{list-style:none}
+.blist li{padding:8px 0;border-bottom:1px solid var(--bdr);font-size:12px;color:#a0a0b0;line-height:1.6;display:flex;gap:10px}
+.blist li:last-child{border-bottom:none}
+.blist li::before{content:'—';color:var(--mut);flex-shrink:0}
+.dr{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--bdr);font-size:12px;gap:12px}
+.dr:last-child{border-bottom:none}
+.dl{color:var(--mut)}
+.dv{font-weight:500;text-align:right}
+
+/* ── REQ GRID ── */
+.rq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--bdr)}
+.rq-item{background:var(--sur);padding:22px 18px}
+.rq-icon{font-size:20px;margin-bottom:8px;display:block}
+.rq-name{font-size:12px;font-weight:500;color:var(--ink);line-height:1.3}
+.rq-detail{font-size:10px;color:var(--mut);margin-top:3px}
+
+/* ── STEPS ── */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.step{background:var(--card);border:1px solid var(--bdr);padding:26px 22px}
+.step-n{font-family:'Playfair Display',serif;font-size:44px;color:var(--bdr);line-height:1;margin-bottom:12px}
+.step-t{font-size:13px;font-weight:500;margin-bottom:6px}
+.step-b{font-size:12px;color:var(--mut);line-height:1.7}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:100px 60px 72px;position:relative;overflow:hidden;background:var(--bg)}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 75% 20%,rgba(61,186,126,0.08) 0%,transparent 65%),radial-gradient(ellipse 40% 60% at 15% 85%,rgba(91,156,246,0.05) 0%,transparent 60%)}
+.hero-eyebrow{font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--grn);margin-bottom:22px;display:flex;align-items:center;gap:12px;position:relative}
+.hero-eyebrow::before{content:'';width:28px;height:1px;background:var(--grn)}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(48px,6.5vw,90px);font-weight:400;line-height:1.02;color:var(--ink);position:relative;max-width:700px}
+.hero h1 em{font-style:italic;color:#a8c8b8}
+.hero-sub{margin-top:28px;color:var(--mut);font-size:14px;max-width:480px;line-height:1.75;position:relative}
+.hero-meta{position:absolute;top:72px;right:60px;font-size:11px;color:#333;text-align:right;line-height:1.8}
+.chap{background:var(--sur);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);padding:18px 60px;display:flex;align-items:center;gap:20px}
+.chap-n{font-family:'Playfair Display',serif;font-size:44px;color:var(--bdr);line-height:1;flex-shrink:0}
+.chap-t h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:400}
+.chap-t p{font-size:12px;color:var(--mut);margin-top:2px}
+
+/* ── SAFETY TABLE ── */
+.st{width:100%;border-collapse:collapse;font-size:12px}
+.st th{padding:10px 12px;font-size:9px;text-transform:uppercase;letter-spacing:0.14em;color:var(--mut);border-bottom:1px solid var(--bdr);background:var(--sur);text-align:center;font-weight:500}
+.st th:first-child{text-align:left}
+.st td{padding:10px 12px;border-bottom:1px solid rgba(42,42,51,0.5);text-align:center;vertical-align:middle}
+.st td:first-child{text-align:left;font-weight:500;color:var(--ink)}
+.st tr:hover td{background:rgba(255,255,255,0.02)}
+.stars{color:var(--amb)}
+
+/* ── JOURNEY CHART ── */
+.jtog-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.jtog{padding:8px 18px;font-size:12px;font-weight:500;border:1px solid var(--bdr);background:transparent;color:var(--mut);cursor:pointer;transition:all 0.2s;font-family:inherit}
+.jtog.on{background:var(--gdim);color:var(--grn);border-color:var(--gbdr)}
+.chart-box{background:var(--card);border:1px solid var(--bdr);padding:28px 24px 20px}
+.ch-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;flex-wrap:wrap;gap:8px}
+.ch-ttl{font-family:'Playfair Display',serif;font-size:17px}
+.ch-meta{font-size:11px;color:var(--mut)}
+.route-ribbon{position:relative;height:78px;margin:18px 0 52px}
+.route-track{position:absolute;top:50%;left:0;right:0;height:3px;background:var(--bdr);transform:translateY(-50%)}
+.route-prog{position:absolute;top:0;left:0;height:100%;width:0;background:linear-gradient(90deg,var(--grn),var(--blu));transition:width 1s ease}
+.wp{position:absolute;top:50%;transform:translate(-50%,-50%)}
+.wp-dot{width:12px;height:12px;border-radius:50%;background:var(--bg);border:2.5px solid;margin:0 auto}
+.wp-top{position:absolute;bottom:calc(50% + 10px);left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap}
+.wp-top strong{display:block;font-size:11px;font-weight:500;color:var(--ink)}
+.wp-top span{font-size:9px;color:var(--mut)}
+.wp-bot{position:absolute;top:calc(50% + 10px);left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap;font-size:9px;color:var(--mut)}
+.bars-hdr{display:flex;align-items:center;margin-bottom:5px}
+.bar-lbl-col{width:110px;flex-shrink:0}
+.bar-trk-col{flex:1;min-width:0}
+.bar-ext-col{width:76px;flex-shrink:0;padding-left:8px;font-size:9px;color:var(--mut);letter-spacing:0.1em;text-transform:uppercase}
+.bars-scale{display:flex;justify-content:space-between}
+.bars-scale span{font-size:9px;color:var(--mut)}
+.bar-rows{display:flex;flex-direction:column;gap:5px}
+.bar-row{display:flex;align-items:center}
+.bar-lbl{width:110px;flex-shrink:0;font-size:11px;font-weight:500;text-align:right;padding-right:10px;color:var(--mut)}
+.bar-lbl.sel{color:var(--ink)}
+.bar-trk{flex:1;height:30px;background:var(--sur);border:1px solid var(--bdr);position:relative;cursor:pointer;transition:border-color 0.15s}
+.bar-trk:hover,.bar-trk.sel{border-color:var(--grn)}
+.bar-fill{position:absolute;left:0;top:0;height:100%;width:0;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;transition:width 0.75s cubic-bezier(0.4,0,0.2,1)}
+.bar-lbl-inner{font-size:10px;font-weight:700;color:rgba(0,0,0,0.85);white-space:nowrap;opacity:0;transition:opacity 0.3s 0.55s}
+.bar-lbl-inner.vis{opacity:1}
+.bar-ext{width:76px;flex-shrink:0;padding-left:8px;font-size:11px;font-weight:700;white-space:nowrap}
+.hw-box{background:var(--sur);border:1px solid var(--bdr);padding:18px 22px;margin-top:18px}
+.hw-box h4{font-size:11px;font-weight:600;color:var(--amb);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px}
+.hw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.hw-card{background:var(--card);padding:11px;border:1px solid var(--bdr)}
+.hw-car{font-size:10px;color:var(--mut);margin-bottom:3px}
+.hw-spd{font-size:13px;font-weight:700}
+.hw-kw{font-size:10px;color:var(--mut)}
+.cn{margin-top:12px;padding:10px 14px;font-size:12px;line-height:1.6;border-left:3px solid}
+
+/* ── BUDGET SLIDERS ── */
+.bpanel{background:var(--card);border:1px solid var(--bdr);padding:28px;margin-bottom:24px}
+.bpanel h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:24px}
+.sl-row{margin-bottom:24px}
+.sl-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.sl-head span{font-size:12px;color:var(--mut)}
+.sl-val{font-size:24px;font-weight:700}
+.sl-sub{font-size:12px;margin-top:6px;line-height:1.6}
+.rsl{-webkit-appearance:none;appearance:none;width:100%;height:4px;outline:none;cursor:pointer;border-radius:0}
+.rsl::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--grn);cursor:pointer;border:2px solid var(--bg)}
+.sl-ticks{display:flex;justify-content:space-between;margin-top:4px}
+.sl-ticks span{font-size:9px;color:var(--mut)}
+.lt{width:100%;border-collapse:collapse;font-size:12px}
+.lt th{padding:8px 12px;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--bdr);background:var(--sur);text-align:center;font-weight:500}
+.lt th:first-child{text-align:left}
+.lt td{padding:9px 12px;border-bottom:1px solid rgba(42,42,51,0.4);text-align:center}
+.lt td:first-child{text-align:left;font-weight:500;color:var(--ink)}
+.lt tr.best td{color:var(--grn);background:rgba(61,186,126,0.05)}
+.loan-info{background:var(--sur);border:1px solid var(--bdr);padding:20px 24px;margin-top:0}
+.loan-info h4{font-size:11px;font-weight:600;color:var(--amb);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px}
+
+/* ── CAR SELECTOR CHIPS ── */
+.chip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.chip{background:var(--card);border:1px solid var(--bdr);padding:14px 12px;cursor:pointer;position:relative;transition:border-color 0.15s,background 0.15s;user-select:none}
+.chip:hover{border-color:var(--mut)}
+.chip.sel{border-color:var(--grn);background:var(--gdim)}
+.chip.over{opacity:0.45}
+.chip-n{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mut);margin-bottom:3px}
+.chip-nm{font-size:12px;font-weight:500;color:var(--ink);line-height:1.3;margin-bottom:5px}
+.chip-p{font-size:15px;font-weight:700;margin-bottom:2px}
+.chip-i{font-size:10px;color:var(--mut)}
+.chip-s{font-size:10px;margin-top:4px}
+.chip-bdg{position:absolute;top:0;right:0;background:var(--grn);color:#000;font-size:8px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:3px 7px}
+
+/* ── COST PANEL ── */
+.cpanel{background:var(--card);border:1px solid var(--bdr);display:grid;grid-template-columns:1fr 1fr}
+.cpanel.hide{display:none}
+.cpl{padding:26px;border-right:1px solid var(--bdr);min-width:0}
+.cpr{padding:26px;background:var(--sur);min-width:0}
+.cp-nm{font-family:'Playfair Display',serif;font-size:24px;line-height:1.1;margin-bottom:4px}
+.cp-bdg{display:inline-block;font-size:9px;font-weight:700;padding:3px 10px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px}
+.fr{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:12px;gap:12px}
+.fr:last-child{border-bottom:none}
+.frl{color:var(--mut);flex-shrink:0}
+.frv{font-weight:500;text-align:right}
+.cr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:12px;gap:12px}
+.cr:last-of-type{border-bottom:none}
+.crl{color:var(--mut)}
+.crv{font-weight:500;text-align:right}
+.total-blk{margin-top:14px;padding-top:12px;border-top:2px solid var(--grn)}
+.total-l{font-size:11px;color:var(--mut);margin-bottom:3px}
+.total-v{font-size:22px;font-weight:700;color:var(--grn)}
+.rmini{height:5px;background:var(--bdr);margin:8px 0 14px}
+.rmini-fill{height:100%;transition:width 0.8s ease}
+.plt{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+.plt th{padding:6px 10px;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--bdr);text-align:center;font-weight:500;background:rgba(0,0,0,0.2)}
+.plt th:first-child{text-align:left}
+.plt td{padding:7px 10px;border-bottom:1px solid rgba(42,42,51,0.4);text-align:center}
+.plt td:first-child{text-align:left;color:var(--mut)}
+.plt tr.best td{color:var(--grn)}
+
+@media(max-width:860px){
+  .vc-grid{grid-template-columns:1fr 1fr}
+  .vc-grid-2{grid-template-columns:1fr}
+  .cpanel{grid-template-columns:1fr}
+  .cpl{border-right:none;border-bottom:1px solid var(--bdr)}
+  .two,.three,.steps{grid-template-columns:1fr}
+  .chip-grid{grid-template-columns:repeat(2,1fr)}
+  .hero{padding:80px 24px 56px}
+  .hero-meta{display:none}
+  .w{padding:0 18px}
+  nav{padding:0 16px}
+  .chap{padding:16px 18px}
+}
+@media(max-width:480px){
+  .vc-grid{grid-template-columns:1fr}
+  .chip-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nb">Our Car Guide</div>
+  <div class="ntabs">
+    <button class="nt on" id="nt-which" onclick="scrollSec('which',this)">Which car?</button>
+    <button class="nt" id="nt-how" onclick="scrollSec('how',this)">How to buy</button>
+    <button class="nt" id="nt-costs" onclick="scrollSec('costs',this)">Running costs</button>
+    <button class="nt" id="nt-legal" onclick="scrollSec('legal',this)">Legal</button>
+    <span class="nt" style="margin-left:auto;color:var(--mut);font-size:10px;opacity:0.6;cursor:default">Open car_explorer.html for interactive tool</span>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-meta">June 2026 · East London</div>
+  <div class="hero-eyebrow">Our Car Guide</div>
+  <h1>Eight cars.<br><em>One decision.</em></h1>
+  <p class="hero-sub">A clear-headed guide built around what we actually need — budget, height, boot space for George, insurance, and easy ownership in East London.</p>
+</section>
+
+<!-- WHICH CAR -->
+<div id="which">
+
+<div class="chap">
+  <div class="chap-n">01</div>
+  <div class="chap-t"><h2>Which car?</h2><p>EV vs other · brands · must-haves · our shortlist of 8</p></div>
+</div>
+
+<div class="w"><div class="sec">
+  <div class="lbl">Non-negotiables</div>
+  <h2 class="ttl">What every car <em>must have</em></h2>
+  <div class="rq-grid" style="margin-bottom:32px">
+    <div class="rq-item"><span class="rq-icon">⚡</span><div class="rq-name">Fully electric</div><div class="rq-detail">No hybrid compromise</div></div>
+    <div class="rq-item"><span class="rq-icon">🔄</span><div class="rq-name">Automatic</div><div class="rq-detail">EVs have no manual option</div></div>
+    <div class="rq-item"><span class="rq-icon">📱</span><div class="rq-name">Apple CarPlay</div><div class="rq-detail">Standard on all shortlisted cars</div></div>
+    <div class="rq-item"><span class="rq-icon">🤖</span><div class="rq-name">Android Auto</div><div class="rq-detail">Standard on all shortlisted cars</div></div>
+    <div class="rq-item"><span class="rq-icon">📷</span><div class="rq-name">Reversing camera</div><div class="rq-detail">Check trim — some need GT/top spec</div></div>
+    <div class="rq-item"><span class="rq-icon">🧍</span><div class="rq-name">6′2″ headroom</div><div class="rq-detail">Test drive essential for EV6 &amp; Mégane</div></div>
+    <div class="rq-item"><span class="rq-icon">🐾</span><div class="rq-name">Rear space for George</div><div class="rq-detail">Dog cage/bed in back seat area</div></div>
+    <div class="rq-item"><span class="rq-icon">💷</span><div class="rq-name">Under £14.5k ideally</div><div class="rq-detail">Cash — no loan impact on mortgage</div></div>
+  </div>
+
+  <div class="lbl">The shortlist — all 8 cars</div>
+  <h2 class="ttl">Eight cars, <em>honest verdicts</em></h2>
+  <p class="sub">Ranked by how well they fit our situation. Every car is automatic, has CarPlay/AA.</p>
+
+  <div class="vc-grid">
+    <div class="vc rec">
+      <div class="vc-badge">Top pick</div>
+      <div class="vc-n">01</div>
+      <div class="vc-name">Hyundai Ioniq 5</div>
+      <div class="vc-ins">Insurance group 33–36</div>
+      <div class="vc-price">£14–17k<span>2021–22</span></div>
+      <p class="vc-text">Best headroom for 6′2″. Fastest charging on the list. Premium feel. 527L boot — excellent for George's bed. The top overall pick.</p>
+      <div class="vc-tags"><span class="tag tg">Best headroom</span><span class="tag tg">Fastest charging</span><span class="tag tg">527L boot</span><span class="tag ta">Higher insurance</span></div>
+      <div class="vc-dealer">
+        <a href="https://maps.google.com/?cid=10682370344161018648" target="_blank" style="text-decoration:none" onclick="event.stopPropagation()">
+          <div class="vc-dealer-name" style="color:var(--grn)">📍 Allen Briggs Hyundai ↗</div>
+        </a>
+        <div class="vc-dealer-addr">47-59 Chingford Mount Rd, E4 8LU · ~5 miles</div>
+        <div class="vc-dealer-meta">4.6★ · 020 8527 5004</div>
+      </div>
+    </div>
+    <div class="vc">
+      <div class="vc-n">02</div>
+      <div class="vc-name">Kia Niro EV</div>
+      <div class="vc-ins">Insurance group 28–29</div>
+      <div class="vc-price">£14–19k<span>2022–23</span></div>
+      <p class="vc-text">Cheapest to insure on the list. 7-year warranty. Cheapest real insurance quote (£76/mo Admiral). 7yr/100k warranty transferable. Reliable, practical. Slower charging fine for daily London use.</p>
+      <div class="vc-tags"><span class="tag tg">Lowest insurance</span><span class="tag tg">7yr warranty</span><span class="tag ta">Slower charging</span></div>
+      <div class="vc-dealer">
+        <a href="https://maps.google.com/?cid=13001822311322177428" target="_blank" style="text-decoration:none" onclick="event.stopPropagation()">
+          <div class="vc-dealer-name" style="color:var(--grn)">📍 Glyn Hopkin Kia East London ↗</div>
+        </a>
+        <div class="vc-dealer-addr">1021 Romford Rd, E12 5LH · ~1 mile</div>
+        <div class="vc-dealer-meta">4.4★ · 020 8988 5547</div>
+      </div>
+    </div>
+    <div class="vc">
+      <div class="vc-n">03</div>
+      <div class="vc-name">Skoda Enyaq</div>
+      <div class="vc-ins">Insurance group 27–37</div>
+      <div class="vc-price">£14–18k<span>2021–22 (80/85)</span></div>
+      <p class="vc-text">Biggest car for the money. 585L boot and excellent rear seat depth — ideal for George's bed. Fast charging, great headroom, very well equipped.</p>
+      <div class="vc-tags"><span class="tag tg">Biggest boot 585L</span><span class="tag tg">Best rear space</span><span class="tag tg">Fast charging</span></div>
+      <div class="vc-dealer">
+        <a href="https://maps.google.com/?cid=10845942822754021213" target="_blank" style="text-decoration:none" onclick="event.stopPropagation()">
+          <div class="vc-dealer-name" style="color:var(--grn)">📍 Trans City Škoda ↗</div>
+        </a>
+        <div class="vc-dealer-addr">65-71 Hoe St, Walthamstow E17 4SA · ~4 miles</div>
+        <div class="vc-dealer-meta">4.4★ · 020 8520 6758</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vc-grid">
+    <div class="vc">
+      <div class="vc-n">04</div>
+      <div class="vc-name">Renault Mégane E-Tech</div>
+      <div class="vc-ins">Insurance group 25–27</div>
+      <div class="vc-price">£16–21k<span>2022–23</span></div>
+      <p class="vc-text">Lowest insurance group on the list. Stylish, excellent infotainment with Google built-in. Low roofline — rear headroom test essential at 6′2″. Budget stretch.</p>
+      <div class="vc-tags"><span class="tag tg">Lowest ins. group</span><span class="tag tg">440L boot</span><span class="tag ta">Test headroom</span><span class="tag ta">Budget stretch</span></div>
+      <div class="vc-dealer">
+        <a href="https://maps.google.com/?cid=14022506302406216384" target="_blank" style="text-decoration:none" onclick="event.stopPropagation()">
+          <div class="vc-dealer-name" style="color:var(--grn)">📍 Renault Romford ↗</div>
+        </a>
+        <div class="vc-dealer-addr">A127 Southend Arterial Rd, RM3 0EZ · ~11 miles</div>
+        <div class="vc-dealer-meta">4.6★ · 01708 794000</div>
+      </div>
+    </div>
+    <div class="vc">
+      <div class="vc-n">05</div>
+      <div class="vc-name">Peugeot e-2008</div>
+      <div class="vc-ins">Insurance group 25–27</div>
+      <div class="vc-price">£11–17k<span>2021–23 · GT trim</span></div>
+      <p class="vc-text">Most affordable entry point. Low insurance group. Rev camera on GT trim only. The iCockpit driving position (small wheel, high instruments) divides opinion — test drive essential.</p>
+      <div class="vc-tags"><span class="tag tg">Most affordable</span><span class="tag tg">Low insurance</span><span class="tag ta">GT trim for rev cam</span><span class="tag ta">Test iCockpit</span></div>
+      <div class="vc-dealer">
+        <a href="https://maps.google.com/?cid=11642864223475242497" target="_blank" style="text-decoration:none" onclick="event.stopPropagation()">
+          <div class="vc-dealer-name" style="color:var(--grn)">📍 Stellantis &You Peugeot Chingford ↗</div>
+        </a>
+        <div class="vc-dealer-addr">457 Chingford Rd, E4 8SP · ~5 miles</div>
+        <div class="vc-dealer-meta">4.2★ · 020 8498 3100</div>
+      </div>
+    </div>
+    <div class="vc">
+      <div class="vc-n">06</div>
+      <div class="vc-name">MG4 Long Range</div>
+      <div class="vc-ins">Insurance group 27–29</div>
+      <div class="vc-price">£14–18k<span>2023–24 Trophy</span></div>
+      <p class="vc-text">Only wireless CarPlay/AA on the list. Genuinely fast charging. The 363L boot is the smallest here — measure against George's cage before deciding.</p>
+      <div class="vc-tags"><span class="tag tg">Wireless CarPlay/AA</span><span class="tag tg">Fast charging</span><span class="tag ta">363L boot</span></div>
+      <div class="vc-dealer">
+        <a href="https://maps.google.com/?cid=10042701183849410738" target="_blank" style="text-decoration:none" onclick="event.stopPropagation()">
+          <div class="vc-dealer-name" style="color:var(--grn)">📍 Glyn Hopkin MG East London ↗</div>
+        </a>
+        <div class="vc-dealer-addr">1021 Romford Rd, E12 5LH · ~1 mile</div>
+        <div class="vc-dealer-meta">4.3★ · 020 8988 5684</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vc-grid-2" style="margin-bottom:16px">
+    <div class="vc cau">
+      <div class="vc-n">07</div>
+      <div class="vc-name">Kia EV6</div>
+      <div class="vc-ins">Insurance group 33–37</div>
+      <div class="vc-price">£17–20k<span>2022 only</span></div>
+      <p class="vc-text">Best range on the list. Same ultra-fast charging as the Ioniq 5. Lower, sportier roofline — headroom must be tested in person at 6′2″ before committing. Top of budget.</p>
+      <div class="vc-tags"><span class="tag tg">Longest range</span><span class="tag tg">Ultra-fast charging</span><span class="tag ta">Test headroom first</span><span class="tag tr">Higher insurance</span></div>
+      <div class="vc-dealer">
+        <a href="https://maps.google.com/?cid=13001822311322177428" target="_blank" style="text-decoration:none" onclick="event.stopPropagation()">
+          <div class="vc-dealer-name" style="color:var(--grn)">📍 Glyn Hopkin Kia East London ↗</div>
+        </a>
+        <div class="vc-dealer-addr">1021 Romford Rd, E12 5LH · ~1 mile</div>
+        <div class="vc-dealer-meta">4.4★ · 020 8988 5547</div>
+      </div>
+    </div>
+    <div class="vc over">
+      <div class="vc-n">08</div>
+      <div class="vc-name">Volvo EX30</div>
+      <div class="vc-ins">Insurance group 35–40</div>
+      <div class="vc-price">£20–24k<span>2023–24</span></div>
+      <p class="vc-text">Excellent car — best safety scores on this list. But over budget, highest insurance group, and the 318L boot is the smallest here. Revisit in 2–3 years with more NCB and the mortgage settled.</p>
+      <div class="vc-tags"><span class="tag tr">Over budget</span><span class="tag tr">Highest insurance</span><span class="tag tg">Best safety scores</span><span class="tag ta">318L boot</span></div>
+      <div class="vc-dealer">
+        <a href="https://maps.google.com/?cid=106344838283043112" target="_blank" style="text-decoration:none" onclick="event.stopPropagation()">
+          <div class="vc-dealer-name" style="color:var(--grn)">📍 Endeavour Volvo Romford ↗</div>
+        </a>
+        <div class="vc-dealer-addr">69 Hainault Rd, Romford RM5 3AD · ~8 miles</div>
+        <div class="vc-dealer-meta">4.4★ · 020 4527 4009</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full comparison table -->
+  <div style="overflow-x:auto;margin-top:32px">
+    <table class="ct">
+      <thead><tr>
+        <th>Car</th><th>Real Range</th><th>Charge 10–80%</th><th>Boot</th><th>Headroom 6′2″</th><th>Rev Cam</th><th>Ins Group</th><th>Used From</th><th>Target Years</th><th>Warranty</th>
+      </tr></thead>
+      <tbody>
+        <tr class="hl"><td>Hyundai Ioniq 5 ★</td><td>220–270mi</td><td class="g">~18 min</td><td class="g">527L</td><td class="g">Excellent</td><td class="g">✓</td><td class="a">33–36</td><td>£14,000</td><td>2021–22</td><td class="g">5yr · Bat 8yr/100k</td></tr>
+        <tr><td>Kia Niro EV</td><td>200–250mi</td><td class="a">~45 min</td><td>475L</td><td>Good</td><td class="g">✓</td><td class="g">28–29</td><td>£14,000</td><td>2022–23</td><td class="g">7yr/100k · Bat 7yr/100k</td></tr>
+        <tr><td>Skoda Enyaq (80/85)</td><td>240–290mi</td><td class="g">~30 min</td><td class="g">585L</td><td class="g">Excellent</td><td class="g">✓</td><td>27–37</td><td>£14,000</td><td>2021–22</td><td class="a">3yr/60k · Bat 8yr/100k</td></tr>
+        <tr><td>Renault Mégane E-Tech</td><td>220–265mi</td><td>~30 min</td><td>440L</td><td class="a">Test first</td><td class="g">✓</td><td class="g">25–27</td><td>£16,000</td><td>2022–23</td><td class="g">5yr/100k · Bat 8yr/100k</td></tr>
+        <tr><td>Peugeot e-2008</td><td>175–215mi</td><td class="a">~50 min</td><td>434L</td><td class="a">OK – test</td><td class="a">GT only</td><td class="g">25–27</td><td>£11,000</td><td>2021–23</td><td class="a">3yr · Bat 8yr/100k</td></tr>
+        <tr><td>MG4 Long Range</td><td>230–265mi</td><td class="g">~28 min</td><td class="a">363L</td><td>Good</td><td class="g">✓</td><td>27–29</td><td>£14,000</td><td>2023–24</td><td class="a">7yr/80k · Bat 8yr/100k</td></tr>
+        <tr><td>Kia EV6</td><td class="g">265–300mi</td><td class="g">~18 min</td><td>490L</td><td class="a">Test first</td><td class="g">✓</td><td class="a">33–37</td><td>£17,000</td><td>2022 only</td><td class="g">7yr/100k · Bat 7yr/100k</td></tr>
+        <tr><td style="color:var(--mut)">Volvo EX30 ⚠</td><td>195–240mi</td><td>~27 min</td><td class="r">318L</td><td class="a">Front OK/rear tight</td><td class="g">✓</td><td class="r">35–40</td><td>£20,000</td><td>2023–24</td><td class="a">3yr/60k · Bat 8yr/100k</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:var(--mut);margin-top:8px">⚠ EX30 over budget. ★ Top recommendation.</p>
+
+  <!-- Year guide -->
+  <div class="lbl" style="margin-top:48px">What to search for</div>
+  <h2 class="ttl">Target year ranges</h2>
+  <p class="sub" style="margin-bottom:24px">Based on current UK used market to land within our £12.5–16.5k budget.</p>
+  <div class="yr-grid">
+    <div class="yr-item"><div class="yr-car">Hyundai Ioniq 5</div><div class="yr-range">2021–22</div><div class="yr-note">Verify 72kWh battery. Avoid base 58kWh. 2023 is £18k+.</div></div>
+    <div class="yr-item"><div class="yr-car">Kia Niro EV</div><div class="yr-range">2022–23</div><div class="yr-note">Post-redesign only. Check full service history for warranty.</div></div>
+    <div class="yr-item"><div class="yr-car">Skoda Enyaq</div><div class="yr-range">2021–22</div><div class="yr-note">80 or 85 model only. Avoid the 60 (smaller battery).</div></div>
+    <div class="yr-item"><div class="yr-car">Renault Mégane E-Tech</div><div class="yr-range">2022–23</div><div class="yr-note">Budget stretch — better for the £16k+ scenario.</div></div>
+    <div class="yr-item"><div class="yr-car">Peugeot e-2008</div><div class="yr-range">2021–23</div><div class="yr-note">GT trim for rev camera. 3yr standard warranty only — Allure Care 8yr cover doesn't apply to pre-July 2024 new cars.</div></div>
+    <div class="yr-item"><div class="yr-car">MG4 Long Range</div><div class="yr-range">2023–24</div><div class="yr-note">Trophy trim for wireless CarPlay/AA. 7yr/80k warranty but infotainment only covered 3yr.</div></div>
+    <div class="yr-item"><div class="yr-car">Kia EV6</div><div class="yr-range">2022 only</div><div class="yr-note">2022 (71/72 plate). 2023 is £20k+.</div></div>
+    <div class="yr-item"><div class="yr-car">Volvo EX30</div><div class="yr-range">Not yet</div><div class="yr-note">Starts at £20k. Only 3yr/60k warranty — shortest on list. Revisit in 2–3 years.</div></div>
+  </div>
+</div></div><!-- end sec / w -->
+
+<!-- HOW TO BUY -->
+<div class="div"></div>
+<div id="how">
+<div class="chap">
+  <div class="chap-n">02</div>
+  <div class="chap-t"><h2>How to buy</h2><p>Cash · loans · mortgage · where to buy · budget</p></div>
+</div>
+<div class="w"><div class="sec">
+  <div class="two" style="margin-bottom:24px">
+    <div class="ib">
+      <h4>Our three scenarios</h4>
+      <div class="dr"><span class="dl">Cash only (safest)</span><span class="dv g">Up to £14,500</span></div>
+      <div class="dr"><span class="dl">Cash + slight stretch</span><span class="dv a">Up to £16,500</span></div>
+      <div class="dr"><span class="dl">Cash + loan (think carefully)</span><span class="dv r">Up to £20,000</span></div>
+      <div class="dr"><span class="dl">Mortgage timing</span><span class="dv a">Coming up soon</span></div>
+    </div>
+    <div class="ib">
+      <h4>What £14,500 cash buys</h4>
+      <div class="dr"><span class="dl">Ioniq 5 (2021)</span><span class="dv g">✓ In range</span></div>
+      <div class="dr"><span class="dl">Niro EV (2022–23)</span><span class="dv g">✓ In range</span></div>
+      <div class="dr"><span class="dl">Enyaq (2021–22)</span><span class="dv g">✓ In range</span></div>
+      <div class="dr"><span class="dl">e-2008 (2021–22)</span><span class="dv g">✓ Well in range</span></div>
+      <div class="dr"><span class="dl">MG4 Long Range</span><span class="dv g">✓ In range</span></div>
+      <div class="dr"><span class="dl">Mégane E-Tech</span><span class="dv a">~ Needs stretch</span></div>
+      <div class="dr"><span class="dl">EV6 (2022)</span><span class="dv r">✗ Needs loan</span></div>
+    </div>
+  </div>
+  <div class="callout a"><strong>Mortgage first:</strong> Speak to your broker before any loan application. A £150/month car loan can reduce your mortgage offer by £20–30k. If the mortgage is within 3 months, buy cash only.</div>
+  <div style="margin-top:24px">
+    <div class="lbl">Where to buy</div>
+    <div class="three">
+      <div class="ib" style="border-color:var(--gbdr)"><h4 style="color:var(--grn)">✓ Official dealer (best)</h4><ul class="blist"><li>Approved Used — car inspected, history checked</li><li>Warranty top-up included (12 months min)</li><li>Battery health checked on EVs</li><li>30-day/1,000mi exchange (Hyundai)</li></ul></div>
+      <div class="ib"><h4>~ Independent dealer</h4><ul class="blist"><li>Consumer Rights Act 2015 still applies</li><li>Often cheaper than official</li><li>Get a battery health report yourself</li><li>Verify warranty carefully</li></ul></div>
+      <div class="ib"><h4>~ Online / Private</h4><ul class="blist"><li>Private sale: lowest price, least protection</li><li>Cazoo/Cinch: convenient, return policies</li><li>Always run HPI check (£20) on private</li><li>AutoTrader: best search tool</li></ul></div>
+    </div>
+    <div class="callout a" style="margin-top:16px"><strong>Negotiation:</strong> Always negotiate on total purchase price, not monthly payment. Dealers prefer monthly conversations — don't let them reframe the deal.</div>
+  </div>
+</div></div>
+
+<!-- COSTS -->
+<div class="div"></div>
+<div id="costs">
+<div class="chap">
+  <div class="chap-n">03</div>
+  <div class="chap-t"><h2>Running costs</h2><p>Insurance · charging · maintenance · everything ongoing</p></div>
+</div>
+<div class="w"><div class="sec">
+  <div class="two" style="margin-bottom:24px">
+    <div class="ib">
+      <h4>Real quotes — telematics, E12 5BE, both cars</h4>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--mut);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bdr)">Kia Niro EV (group 28–29)</div>
+      <div class="dr" style="background:rgba(61,186,126,0.06)"><span class="dl" style="font-weight:600;color:var(--ink)">Admiral LittleBox ⭐</span><span class="dv g" style="font-size:15px;font-weight:700">£76/mo · £914/yr</span></div>
+      <div class="dr"><span class="dl">Hastings YouDrive (5★)</span><span class="dv a">£105/mo · £1,256/yr</span></div>
+      <div class="dr"><span class="dl">Admiral standard</span><span class="dv a">£124/mo · £1,485/yr</span></div>
+      <div style="height:1px;background:var(--bdr);margin:10px 0"></div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--mut);margin-bottom:8px">Hyundai Ioniq 5 (group 33–36)</div>
+      <div class="dr" style="background:rgba(61,186,126,0.06)"><span class="dl" style="font-weight:600;color:var(--ink)">Admiral LittleBox ⭐</span><span class="dv g" style="font-size:15px;font-weight:700">£93/mo · £1,122/yr</span></div>
+      <div class="dr"><span class="dl">Zego (5★ Defaqto)</span><span class="dv a">£100/mo · £1,201/yr</span></div>
+      <div class="dr"><span class="dl">Hastings YouDrive</span><span class="dv a">£141/mo · £1,694/yr</span></div>
+      <div class="callout" style="margin-top:12px"><strong>All telematics policies.</strong> Niro EV saves £17/mo (£204/yr) over the Ioniq 5 on the best quote. Quote 5,000 miles/year honestly — well below average and will help your premium.</div>
+    </div>
+    <div class="ib">
+      <h4>Full monthly costs — Niro EV, telematics, no loan</h4>
+      <div class="dr"><span class="dl">Insurance (Admiral LittleBox)</span><span class="dv g">£76/mo</span></div>
+      <div class="dr"><span class="dl">Home charging (Octopus Go ~7p)</span><span class="dv g">~£30–50</span></div>
+      <div class="dr"><span class="dl">Road tax (VED)</span><span class="dv">~£16</span></div>
+      <div class="dr"><span class="dl">Service / tyres (averaged)</span><span class="dv">~£25–35</span></div>
+      <div class="dr"><span class="dl">Roadside assistance</span><span class="dv">~£12</span></div>
+      <div class="dr"><span class="dl">Newham parking permit</span><span class="dv">~£9</span></div>
+      <div class="dr" style="border-top:1px solid var(--grn);margin-top:6px"><span class="dl" style="font-weight:600;color:var(--ink)">Total (no loan)</span><span class="dv g" style="font-size:16px">~£170–200/mo</span></div>
+    </div>
+  </div>
+  <div class="callout"><strong>Home charging setup:</strong> A proper outdoor socket or wallbox (£500–900 installed, Ohme/Zappi recommended) means charging at home tariff rates. On Octopus Go (~7p/kWh overnight) a full Ioniq 5 charge costs ~£5. Use a qualified electrician — your insurer needs to see a proper installation.</div>
+</div></div>
+
+<!-- LEGAL -->
+<div class="div"></div>
+<div id="legal">
+<div class="chap">
+  <div class="chap-n">04</div>
+  <div class="chap-t"><h2>Legal &amp; admin</h2><p>Buyer protection · checks · ULEZ · what to do when</p></div>
+</div>
+<div class="w"><div class="sec">
+  <div class="three" style="margin-bottom:24px">
+    <div class="ib"><h4>Consumer Rights Act 2015</h4><ul class="blist"><li>Fault within 30 days: full refund right</li><li>Fault within 6 months: repair first, then refund</li><li>Applies to dealers — not private sellers</li></ul></div>
+    <div class="ib"><h4>Before you buy</h4><ul class="blist"><li>HPI Check (~£20) — no outstanding finance, not stolen</li><li>V5C logbook matches seller and car</li><li>MOT history — free at gov.uk/check-mot-history</li><li>Battery health report — ask dealer, want 85%+</li></ul></div>
+    <div class="ib"><h4>After you buy</h4><ul class="blist"><li>Register keeper change via DVLA within 2 weeks</li><li>Insurance active before driving off forecourt</li><li>Road tax — apply immediately, not automatic</li><li>Newham parking permit — newham.gov.uk (~£110/yr)</li></ul></div>
+  </div>
+  <div class="two">
+    <div class="ib"><h4>ULEZ &amp; London rules</h4><ul class="blist"><li>All EVs are ULEZ exempt — no charge ever</li><li>E12 Manor Park is within the ULEZ boundary</li><li>Petrol/diesel paying £12.50/day if non-compliant</li><li>Congestion Charge — EVs no longer exempt (£15/day if driving in zone)</li></ul></div>
+    <div class="ib"><h4>Next steps — in order</h4><ul class="blist"><li>Talk to mortgage broker before any loan application</li><li>Get insurance quotes for top 2–3 cars with real details</li><li>Search AutoTrader by the target year ranges above</li><li>Test drive EV6 and Mégane specifically for headroom</li><li>Ask for battery health report on anything over 50k miles</li><li>HPI check before any offer on private or independent</li></ul></div>
+  </div>
+</div></div><!-- /legal sec -->
+
+
+<div style="padding:28px;text-align:center;border-top:1px solid var(--bdr)">
+  <span style="font-size:11px;color:var(--mut);letter-spacing:0.1em">Prepared June 2026 · East London · Prices indicative — verify on AutoTrader before buying</span>
+</div>
+<script>
+function scrollSec(id, btn){
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  if(btn){
+    document.querySelectorAll('.nt').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+  }
+}
+// scroll highlight
+const _secs = ['which','how','costs','legal'];
+const _btns = document.querySelectorAll('.nt[id^="nt-"]');
+_secs.forEach((id,i)=>{
+  new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){
+      _btns.forEach(b=>b.classList.remove('on'));
+      if(_btns[i]) _btns[i].classList.add('on');
+    }
+  },{threshold:0.2,rootMargin:'-52px 0px 0px 0px'}).observe(document.getElementById(id));
+});
+</script>
+</body>
+</html>
